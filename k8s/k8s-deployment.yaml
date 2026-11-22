@@ -1,0 +1,69 @@
+# k8s-deployment.yaml
+# IMAGE_PLACEHOLDER est remplacé par Jenkins par <dockerhub-user>/my-app:<build>.
+# En manuel : remplacez-le par <your-dockerhub-username>/my-app:latest
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+      annotations:
+        # Défi 2 : Prometheus découvre et scrape automatiquement les pods
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: my-app
+          image: IMAGE_PLACEHOLDER
+          ports:
+            - containerPort: 3000
+          # Défi 3 : secret injecté depuis un Secret Kubernetes
+          env:
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-secret
+                  key: API_KEY
+                  optional: true
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app-service
+  labels:
+    app: my-app
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+  selector:
+    app: my-app
