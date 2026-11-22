@@ -9,7 +9,7 @@ pipeline {
     parameters {
         string(name: 'DOCKERHUB_USER', defaultValue: 'your-dockerhub-username',
                description: 'Votre identifiant Docker Hub')
-        string(name: 'GIT_URL', defaultValue: 'https://github.com/your-username/my-app.git',
+        string(name: 'GIT_URL', defaultValue: 'https://github.com/yahyaouimohamedkhalil/my-app.git',
                description: 'URL du dépôt Git')
     }
 
